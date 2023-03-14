@@ -16,7 +16,7 @@ import java.util.function.Function;
 @SuppressWarnings("unused")
 public abstract class AbstractJpaService<T, ID> {
 
-    private final JpaRepository<T, ID> repository;
+    protected final JpaRepository<T, ID> repository;
 
     @SuppressWarnings("unchecked")
     protected AbstractJpaService(ApplicationContext context, Class<T> entityClass) throws RepositoryNotFoundException {
