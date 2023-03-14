@@ -1,0 +1,32 @@
+allprojects {
+	group = 'dev.outldrr'
+	version = '0.0.1'
+
+	apply plugin: 'java'
+
+	repositories {
+		mavenLocal()
+		mavenCentral()
+	}
+}
+
+subprojects {
+	if (!project.childProjects.isEmpty() || project.name == 'maven-parent') {
+		return
+	}
+
+	apply plugin: 'java-library'
+	java {
+		toolchain {
+			languageVersion.set(JavaLanguageVersion.of(17))
+		}
+	}
+
+	tasks.withType(JavaCompile).tap {
+		configureEach {
+			options.debug = true
+			options.encoding = 'UTF-8'
+			options.compilerArgs << '-parameters' << '-Xlint:all' << '-Xlint:-serial' << '-XprintRounds'
+		}
+	}
+}
