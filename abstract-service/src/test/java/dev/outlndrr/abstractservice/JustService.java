@@ -5,12 +5,14 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 @Service
-public class JustService extends AbstractJpaService<JustEntity, Long, JustEntityRepo> {
+public class JustService extends AbstractJpaService<JustEntity, Long> {
     public JustService(ApplicationContext context) {
         super(context, JustEntity.class);
     }
 
     public JustEntity findByName(String name) {
-        return repository.findByName(name).orElse(null);
+        return this.<JustEntityRepo>getRepository()
+                .findByName(name)
+                .orElse(null);
     }
 }

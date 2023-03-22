@@ -2,33 +2,28 @@ package dev.outlndrr.abstractservice;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 @TestPropertySource(locations = "classpath:application.yml")
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @DataJpaTest
-@ExtendWith(MockitoExtension.class)
+@Import(TestAppConfiguration.class)
 public class AbstractJpaServiceTest {
 
-    @MockBean
+    @Autowired
     private JustService justService;
 
-    @MockBean
+    @Autowired
     private JustEntityRepo justEntityRepo;
 
-    @MockBean
+    @Autowired
     private TestEntityManager entityManager;
 
     @BeforeEach
@@ -36,8 +31,8 @@ public class AbstractJpaServiceTest {
         JustEntity justEntity1 = new JustEntity(1L, "Name1");
         JustEntity justEntity2 = new JustEntity(2L, "Name2");
 
-        entityManager.persist(justEntity1);
-        entityManager.persist(justEntity2);
+        entityManager.persistAndFlush(justEntity1);
+        entityManager.persistAndFlush(justEntity2);
     }
 
     @Test
@@ -47,8 +42,27 @@ public class AbstractJpaServiceTest {
 
         assertNotNull(serviceEntities);
         assertEquals(repoEntities, serviceEntities);
+        assertEquals(repoEntities.size(), serviceEntities.size());
+    }
 
-        verify(justService, times(1)).findAll();
-        verify(justEntityRepo, times(1)).findAll();
+    @Test
+    public void customQuery_shouldNotBeNullAndEquals() {
+        JustEntity repoEntity = justEntityRepo.findByName("Name1").orElse(null);
+        JustEntity serviceEntity = justService.<JustEntityRepo>getRepository().findByName("Name1").orElse(null);
+
+        assertNotNull(repoEntity);
+        assertNotNull(serviceEntity);
+        assertEquals(repoEntity, serviceEntity);
+        assertEquals(repoEntity.getId(), serviceEntity.getId());
+    }
+
+    @Test
+    public void customQueryInvalidData_shouldBeNull() {
+        JustEntity serviceEntity = justService
+                .<JustEntityRepo>getRepository()
+                .findByName("Name3")
+                .orElse(null);
+
+        assertNull(serviceEntity);
     }
 }

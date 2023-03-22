@@ -14,13 +14,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-public abstract class AbstractJpaService<T, ID, R extends JpaRepository<T, ID>> {
+public abstract class AbstractJpaService<T, ID> {
 
-    protected final R repository;
+    private final JpaRepository<T, ID> repository;
 
     @SuppressWarnings("unchecked")
     protected AbstractJpaService(@NonNull ApplicationContext context, @NonNull Class<T> entityClass) {
-        this.repository = (R) new Repositories(context)
+        this.repository = (JpaRepository<T, ID>) new Repositories(context)
                 .getRepositoryFor(entityClass)
                 .orElseThrow(() -> new RepositoryNotFoundException(entityClass));
     }
@@ -131,5 +131,10 @@ public abstract class AbstractJpaService<T, ID, R extends JpaRepository<T, ID>> 
 
     public void deleteAll() {
         repository.deleteAll();
+    }
+
+    @SuppressWarnings("unchecked")
+    public <R extends JpaRepository<T, ID>> R getRepository() {
+        return (R) repository;
     }
 }
