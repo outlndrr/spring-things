@@ -8,18 +8,18 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.data.repository.support.Repositories;
+import org.springframework.lang.NonNull;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-@SuppressWarnings("unused")
 public abstract class AbstractJpaService<T, ID> {
 
     protected final JpaRepository<T, ID> repository;
 
     @SuppressWarnings("unchecked")
-    protected AbstractJpaService(ApplicationContext context, Class<T> entityClass) throws RepositoryNotFoundException {
+    protected AbstractJpaService(@NonNull ApplicationContext context, @NonNull Class<T> entityClass) {
         this.repository = (JpaRepository<T, ID>) new Repositories(context)
                 .getRepositoryFor(entityClass)
                 .orElseThrow(() -> new RepositoryNotFoundException(entityClass));

@@ -1,3 +1,5 @@
 rootProject.name = 'spring-things'
 
 include 'abstract-service'
+include 'examples'
+
