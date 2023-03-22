@@ -14,13 +14,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-public abstract class AbstractJpaService<T, ID> {
+public abstract class AbstractJpaService<T, ID, R extends JpaRepository<T, ID>> {
 
-    protected final JpaRepository<T, ID> repository;
+    protected final R repository;
 
     @SuppressWarnings("unchecked")
     protected AbstractJpaService(@NonNull ApplicationContext context, @NonNull Class<T> entityClass) {
-        this.repository = (JpaRepository<T, ID>) new Repositories(context)
+        this.repository = (R) new Repositories(context)
                 .getRepositoryFor(entityClass)
                 .orElseThrow(() -> new RepositoryNotFoundException(entityClass));
     }
