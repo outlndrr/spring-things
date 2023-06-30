@@ -2,10 +2,12 @@ package dev.outlndrr.abstractservice;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.test.context.TestPropertySource;
 
 import java.util.List;
@@ -19,6 +21,10 @@ public class AbstractJpaServiceTest {
 
     @Autowired
     private JustService justService;
+
+    @Autowired
+    @Lazy
+    private NotEntityService notEntityService;
 
     @Autowired
     private JustEntityRepo justEntityRepo;
@@ -36,7 +42,7 @@ public class AbstractJpaServiceTest {
     }
 
     @Test
-    public void findAll() {
+    public void findAllMethod_shouldNotBeNull_sameResults() {
         List<JustEntity> repoEntities = justEntityRepo.findAll();
         List<JustEntity> serviceEntities = justService.findAll();
 
@@ -64,5 +70,10 @@ public class AbstractJpaServiceTest {
                 .orElse(null);
 
         assertNull(serviceEntity);
+    }
+
+    @Test
+    public void nonEntityService_shouldThrowException() {
+        assertThrows(BeanCreationException.class, () -> notEntityService.findAll());
     }
 }

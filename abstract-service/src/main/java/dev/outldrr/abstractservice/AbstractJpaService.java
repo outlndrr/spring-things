@@ -1,5 +1,6 @@
 package dev.outldrr.abstractservice;
 
+import jakarta.persistence.Entity;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
@@ -9,17 +10,22 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.data.repository.support.Repositories;
 import org.springframework.lang.NonNull;
+import org.springframework.util.Assert;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-public abstract class AbstractJpaService<T, ID> {
+public abstract class AbstractJpaService<T extends Serializable, ID> {
 
     private final JpaRepository<T, ID> repository;
 
     @SuppressWarnings("unchecked")
     protected AbstractJpaService(@NonNull ApplicationContext context, @NonNull Class<T> entityClass) {
+        Assert.isTrue(entityClass.isAnnotationPresent(Entity.class), "Provided [" + entityClass
+                + "] does not contain Entity annotation!");
+
         this.repository = (JpaRepository<T, ID>) new Repositories(context)
                 .getRepositoryFor(entityClass)
                 .orElseThrow(() -> new RepositoryNotFoundException(entityClass));
