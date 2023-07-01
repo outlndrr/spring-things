@@ -17,130 +17,134 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-public abstract class AbstractJpaService<T extends Serializable, ID> {
+@SuppressWarnings("unused")
+public abstract class AbstractJpaService {
 
-    private final JpaRepository<T, ID> repository;
+    private final Repositories repositories;
+
+    public AbstractJpaService(@NonNull ApplicationContext context) {
+        this.repositories = new Repositories(context);
+    }
+
+    public <T extends Serializable> void flush(Class<T> entityClass) {
+        findRepo(entityClass).flush();
+    }
+
+    public <T extends Serializable, ID> void saveAndFlush(Class<T> entityClass, T entity) {
+        findRepo(entityClass).saveAndFlush(entity);
+    }
+
+    public <T extends Serializable, ID> void saveAllAndFlush(Class<T> entityClass, Iterable<T> entities) {
+        findRepo(entityClass).saveAllAndFlush(entities);
+    }
+
+    public <T extends Serializable, ID> void deleteAllInBatch(Class<T> entityClass, Iterable<T> entities) {
+        findRepo(entityClass).deleteAllInBatch(entities);
+    }
+
+    public <T extends Serializable, ID> void deleteAllInBatch(Class<T> entityClass) {
+        findRepo(entityClass).deleteAllInBatch();
+    }
+
+    public <T extends Serializable, ID> T getReferenceById(Class<T> entityClass, ID entityId) {
+        return findRepo(entityClass).getReferenceById(entityId);
+    }
+
+    public <T extends Serializable> List<T> findAll(Class<T> entityClass) {
+        return findRepo(entityClass).findAll();
+    }
+
+    public <T extends Serializable> List<T> findAll(Class<T> entityClass, Sort sort) {
+        return findRepo(entityClass).findAll(sort);
+    }
+
+    public <T extends Serializable> List<T> findAll(Class<T> entityClass, Example<T> example) {
+        return findRepo(entityClass).findAll(example);
+    }
+
+    public <T extends Serializable> List<T> findAll(Class<T> entityClass, Example<T> example, Sort sort) {
+        return findRepo(entityClass).findAll(example, sort);
+    }
+
+    public <T extends Serializable> Page<T> findAll(Class<T> entityClass, Pageable pageable) {
+        return findRepo(entityClass).findAll(pageable);
+    }
+
+    public <T extends Serializable> Page<T> findAll(Class<T> entityClass, Example<T> example, Pageable pageable) {
+        return findRepo(entityClass).findAll(example, pageable);
+    }
+
+    public <T extends Serializable> List<T> findAllById(Class<T> entityClass, Iterable<Object> ids) {
+        return findRepo(entityClass).findAllById(ids);
+    }
+
+    public <T extends Serializable> void save(Class<T> entityClass, T entity) {
+        findRepo(entityClass).save(entity);
+    }
+
+    public <T extends Serializable> void saveAll(Class<T> entityClass, Iterable<T> entities) {
+        findRepo(entityClass).saveAll(entities);
+    }
+
+    public <T extends Serializable, ID> Optional<T> findById(Class<T> entityClass, ID id) {
+        return findRepo(entityClass).findById(id);
+    }
+
+    public <T extends Serializable> Optional<T> findOne(Class<T> entityClass, Example<T> example) {
+        return findRepo(entityClass).findOne(example);
+    }
+
+    public <T extends Serializable, R> R findBy(
+            Class<T> entityClass,
+            Example<T> example,
+            Function<FluentQuery.FetchableFluentQuery<T>, R> queryFunction
+    ) {
+        return findRepo(entityClass).findBy(example, queryFunction);
+    }
+
+    public <T extends Serializable, ID> boolean existsById(Class<T> entityClass, ID id) {
+        return findRepo(entityClass).existsById(id);
+    }
+
+    public <T extends Serializable> boolean exists(Class<T> entityClass, Example<T> example) {
+        return findRepo(entityClass).exists(example);
+    }
+
+    public <T extends Serializable> long count(Class<T> entityClass) {
+        return findRepo(entityClass).count();
+    }
+
+    public <T extends Serializable> long count(Class<T> entityClass, Example<T> example) {
+        return findRepo(entityClass).count(example);
+    }
+
+    public <T extends Serializable, ID> void deleteById(Class<T> entityClass, ID id) {
+        findRepo(entityClass).deleteById(id);
+    }
+
+    public <T extends Serializable> void delete(Class<T> entityClass, T entity) {
+        findRepo(entityClass).delete(entity);
+    }
+
+    public <T extends Serializable, ID> void deleteAllById(Class<T> entityClass, Iterable<? extends ID> ids) {
+        findRepo(entityClass).deleteAllById(ids);
+    }
+
+    public <T extends Serializable> void deleteAll(Class<T> entityClass, Iterable<? extends T> entities) {
+        findRepo(entityClass).deleteAll(entities);
+    }
+
+    public <T extends Serializable> void deleteAll(Class<T> entityClass) {
+        findRepo(entityClass).deleteAll();
+    }
 
     @SuppressWarnings("unchecked")
-    protected AbstractJpaService(@NonNull ApplicationContext context, @NonNull Class<T> entityClass) {
+    private <T extends Serializable, ID> JpaRepository<T, ID> findRepo(Class<T> entityClass) {
         Assert.isTrue(entityClass.isAnnotationPresent(Entity.class), "Provided [" + entityClass
                 + "] does not contain Entity annotation!");
 
-        this.repository = (JpaRepository<T, ID>) new Repositories(context)
+        return (JpaRepository<T, ID>) repositories
                 .getRepositoryFor(entityClass)
                 .orElseThrow(() -> new RepositoryNotFoundException(entityClass));
-    }
-
-    public void flush() {
-        repository.flush();
-    }
-
-    public void saveAndFlush(T entity) {
-        repository.saveAndFlush(entity);
-    }
-
-    public void saveAllAndFlush(Iterable<T> entities) {
-        repository.saveAllAndFlush(entities);
-    }
-
-    public void deleteAllInBatch(Iterable<T> entities) {
-        repository.deleteAllInBatch(entities);
-    }
-
-    public void deleteAllInBatch() {
-        repository.deleteAllInBatch();
-    }
-
-    public T getReferenceById(ID entityId) {
-        return repository.getReferenceById(entityId);
-    }
-
-    public List<T> findAll() {
-        return repository.findAll();
-    }
-
-    public List<T> findAll(Sort sort) {
-        return repository.findAll(sort);
-    }
-
-    public List<T> findAll(Example<T> example) {
-        return repository.findAll(example);
-    }
-
-    public List<T> findAll(Example<T> example, Sort sort) {
-        return repository.findAll(example, sort);
-    }
-
-    public Page<T> findAll(Pageable pageable) {
-        return repository.findAll(pageable);
-    }
-
-    public Page<T> findAll(Example<T> example, Pageable pageable) {
-        return repository.findAll(example, pageable);
-    }
-
-    public List<T> findAllById(Iterable<ID> ids) {
-        return repository.findAllById(ids);
-    }
-
-    public void save(T entity) {
-        repository.save(entity);
-    }
-
-    public void saveAll(Iterable<T> entities) {
-        repository.saveAll(entities);
-    }
-
-    public Optional<T> findById(ID id) {
-        return repository.findById(id);
-    }
-
-    public Optional<T> findOne(Example<T> example) {
-        return repository.findOne(example);
-    }
-
-    public <R> R findBy(Example<T> example, Function<FluentQuery.FetchableFluentQuery<T>, R> queryFunction) {
-        return repository.findBy(example, queryFunction);
-    }
-
-    public boolean existsById(ID id) {
-        return repository.existsById(id);
-    }
-
-    public boolean exists(Example<T> example) {
-        return repository.exists(example);
-    }
-
-    public long count() {
-        return repository.count();
-    }
-
-    public long count(Example<T> example) {
-        return repository.count(example);
-    }
-
-    public void deleteById(ID id) {
-        repository.deleteById(id);
-    }
-
-    public void delete(T entity) {
-        repository.delete(entity);
-    }
-
-    public void deleteAllById(Iterable<? extends ID> ids) {
-        repository.deleteAllById(ids);
-    }
-
-    public void deleteAll(Iterable<? extends T> entities) {
-        repository.deleteAll(entities);
-    }
-
-    public void deleteAll() {
-        repository.deleteAll();
-    }
-
-    @SuppressWarnings("unchecked")
-    public <R extends JpaRepository<T, ID>> R getRepository() {
-        return (R) repository;
     }
 }

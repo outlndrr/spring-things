@@ -1,13 +1,12 @@
 package dev.outlndrr.abstractservice;
 
+import dev.outldrr.abstractservice.AbstractJpaService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.test.context.TestPropertySource;
 
 import java.util.List;
@@ -20,17 +19,13 @@ import static org.junit.jupiter.api.Assertions.*;
 public class AbstractJpaServiceTest {
 
     @Autowired
-    private JustService justService;
-
-    @Autowired
-    @Lazy
-    private NotEntityService notEntityService;
-
-    @Autowired
     private JustEntityRepo justEntityRepo;
 
     @Autowired
     private TestEntityManager entityManager;
+
+    @Autowired
+    private AbstractJpaService abstractJpaService;
 
     @BeforeEach
     public void insertData() {
@@ -44,7 +39,7 @@ public class AbstractJpaServiceTest {
     @Test
     public void findAllMethod_shouldNotBeNull_sameResults() {
         List<JustEntity> repoEntities = justEntityRepo.findAll();
-        List<JustEntity> serviceEntities = justService.findAll();
+        List<JustEntity> serviceEntities = abstractJpaService.findAll(JustEntity.class);
 
         assertNotNull(serviceEntities);
         assertEquals(repoEntities, serviceEntities);
@@ -53,8 +48,8 @@ public class AbstractJpaServiceTest {
 
     @Test
     public void customQuery_shouldNotBeNullAndEquals() {
-        JustEntity repoEntity = justEntityRepo.findByName("Name1").orElse(null);
-        JustEntity serviceEntity = justService.<JustEntityRepo>getRepository().findByName("Name1").orElse(null);
+        JustEntity repoEntity = justEntityRepo.findById(1L).orElse(null);
+        JustEntity serviceEntity = abstractJpaService.findById(JustEntity.class, 1L).orElse(null);
 
         assertNotNull(repoEntity);
         assertNotNull(serviceEntity);
@@ -63,17 +58,7 @@ public class AbstractJpaServiceTest {
     }
 
     @Test
-    public void customQueryInvalidData_shouldBeNull() {
-        JustEntity serviceEntity = justService
-                .<JustEntityRepo>getRepository()
-                .findByName("Name3")
-                .orElse(null);
-
-        assertNull(serviceEntity);
-    }
-
-    @Test
     public void nonEntityService_shouldThrowException() {
-        assertThrows(BeanCreationException.class, () -> notEntityService.findAll());
+        assertThrows(IllegalArgumentException.class, () -> abstractJpaService.findAll(NotEntity.class));
     }
 }
